@@ -25,9 +25,6 @@ from TRACER.util.effi_utils import (
     calculate_output_image_size
 )
 from TRACER.modules.att_modules import Frequency_Edge_Module
-from TRACER.config import getConfig
-
-cfg = getConfig()
 
 VALID_MODELS = (
     'efficientnet-b0', 'efficientnet-b1', 'efficientnet-b2', 'efficientnet-b3',
@@ -154,7 +151,7 @@ class EfficientNet(nn.Module):
         self._global_params = global_params
         self._blocks_args = blocks_args
         self.block_idx, self.channels = get_model_shape(cfg["arch"])
-        self.Frequency_Edge_Module1 = Frequency_Edge_Module(radius=cfg.frequency_radius,
+        self.Frequency_Edge_Module1 = Frequency_Edge_Module(radius=cfg["frequency_radius"],
                                                             channel=self.channels[0])
         # Batch norm parameters
         bn_mom = 1 - self._global_params.batch_norm_momentum
