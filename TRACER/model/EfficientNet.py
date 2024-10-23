@@ -11,7 +11,7 @@ Reimplemented: Min Seok Lee and Wooseok Shin
 import torch
 from torch import nn
 from torch.nn import functional as F
-from util.effi_utils import (
+from TRACER.util.effi_utils import (
     get_model_shape,
     round_filters,
     round_repeats,
@@ -24,8 +24,8 @@ from util.effi_utils import (
     MemoryEfficientSwish,
     calculate_output_image_size
 )
-from modules.att_modules import Frequency_Edge_Module
-from config import getConfig
+from TRACER.modules.att_modules import Frequency_Edge_Module
+from TRACER.config import getConfig
 
 cfg = getConfig()
 
@@ -147,13 +147,13 @@ class MBConvBlock(nn.Module):
 
 
 class EfficientNet(nn.Module):
-    def __init__(self, blocks_args=None, global_params=None):
+    def __init__(self, cfg, blocks_args=None, global_params=None):
         super().__init__()
         assert isinstance(blocks_args, list), 'blocks_args should be a list'
         assert len(blocks_args) > 0, 'block args must be greater than 0'
         self._global_params = global_params
         self._blocks_args = blocks_args
-        self.block_idx, self.channels = get_model_shape()
+        self.block_idx, self.channels = get_model_shape(cfg["arch"])
         self.Frequency_Edge_Module1 = Frequency_Edge_Module(radius=cfg.frequency_radius,
                                                             channel=self.channels[0])
         # Batch norm parameters

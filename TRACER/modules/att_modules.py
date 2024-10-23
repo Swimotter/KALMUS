@@ -4,12 +4,9 @@ author: Min Seok Lee and Wooseok Shin
 import numpy as np
 import torch.nn as nn
 from torch.fft import fft2, fftshift, ifft2, ifftshift
-from util.utils import *
+from TRACER.util.utils import *
 import torch.nn.functional as F
-from config import getConfig
-from modules.conv_modules import BasicConv2d, DWConv, DWSConv
-
-cfg = getConfig()
+from TRACER.modules.conv_modules import BasicConv2d, DWConv, DWSConv
 
 
 class Frequency_Edge_Module(nn.Module):
@@ -137,10 +134,10 @@ class GlobalAvgPool(nn.Module):
 
 
 class UnionAttentionModule(nn.Module):
-    def __init__(self, n_channels, only_channel_tracing=False):
+    def __init__(self, cfg, n_channels, only_channel_tracing=False):
         super(UnionAttentionModule, self).__init__()
         self.GAP = GlobalAvgPool()
-        self.confidence_ratio = cfg.gamma
+        self.confidence_ratio = cfg["gamma"]
         self.bn = nn.BatchNorm2d(n_channels)
         self.norm = nn.Sequential(
             nn.BatchNorm2d(n_channels),
@@ -251,8 +248,9 @@ class aggregation(nn.Module):
 
 
 class ObjectAttention(nn.Module):
-    def __init__(self, channel, kernel_size):
+    def __init__(self, cfg, channel, kernel_size):
         super(ObjectAttention, self).__init__()
+        self.cfg = cfg
         self.channel = channel
         self.DWSConv = DWSConv(channel, channel // 2, kernel=kernel_size, padding=1, kernels_per_layer=1)
         self.DWConv1 = nn.Sequential(
@@ -286,7 +284,7 @@ class ObjectAttention(nn.Module):
         x = mask_ob.expand(-1, self.channel, -1, -1).mul(encoder_map)
 
         edge = mask_bg.clone()
-        edge[edge > cfg.denoise] = 0
+        edge[edge > self.cfg["denoise"]] = 0
         x = x + (edge * encoder_map)
 
         x = self.DWSConv(x)

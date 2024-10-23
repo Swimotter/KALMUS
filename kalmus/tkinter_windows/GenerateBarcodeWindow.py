@@ -65,7 +65,7 @@ class GenerateBarcodeWindow():
 
         # Dropdown menu for the frame sampling type selection
         dropdown_frame_type = tkinter.OptionMenu(self.window, self.frame_type_var, "Whole_frame", "Low_contrast_region",
-                                                 "High_contrast_region", "Foreground", "Background")
+                                                 "High_contrast_region", "Foreground", "Background", "Focus")
         dropdown_frame_type.grid(row=1, column=1)
 
         # Variable that stores the user's choice of color metric

@@ -77,6 +77,15 @@ class Test_DatasetGenerate(Dataset):
     def __len__(self):
         return len(self.images)
 
+class Image_DatasetGenerate(Dataset):
+    def __init__(self, frame, transform=None):
+        self.image = frame
+        self.transform = transform
+
+def get_image_loader(frame, batch_size, num_workers, transform):
+    dataset = Image_DatasetGenerate(frame, transform)
+    data_loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    return data_loader
 
 def get_loader(img_folder, gt_folder, edge_folder, phase: str, batch_size, shuffle,
                num_workers, transform, seed=None):

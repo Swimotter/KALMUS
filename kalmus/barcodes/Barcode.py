@@ -10,9 +10,8 @@ import numpy as np
 import threading
 
 from kalmus.utils import artist as artist
+from kalmus.utils.focus import Focus
 from kalmus.utils.artist import get_letter_box_from_frames, get_contrast_matrix_and_labeled_image
-
-from TRACER.inference import Inference
 
 # Available metrics for computing the color of a frame
 color_metrics = ["Average", "Median", "Mode", "Top-dominant", "Weighted-dominant",
@@ -61,6 +60,18 @@ class Barcode:
         """
         self.color_metric = color_metric
         self.frame_type = frame_type
+
+        if self.frame_type == "Focus":
+            self.focus = Focus({"img_size": 640,
+                                "arch": 7,
+                                "multi_gpu": True,
+                                "RFB_aggregated_channel": [32, 64, 128],
+                                "frequency_radius": 16,
+                                "gamma": 0.1,
+                                "denoise": 0.93,
+                                "batch_size": 32,
+                                "num_workers": 4})
+
         self.barcode_type = barcode_type
         self.meta_data = {}
 
@@ -192,17 +203,9 @@ class Barcode:
                 # Empty background part use the whole frame instead
                 back_frame = frame
             processed_frame = back_frame
-
-
-    ### FOCUS FOCUS FOCUS???
         elif self.frame_type == "Focus":
-            # _, back_frame = foreback_segmentation(frame)
-            # if back_frame.size == 0:
-            #     # Empty background part use the whole frame instead
-            #     back_frame = frame
-            
-            # focus stuff...?
-            processed_frame = Inference(frame).test()
+            self.focus.set_loader(frame)
+            processed_frame = self.focus.test()
             
             
         return processed_frame

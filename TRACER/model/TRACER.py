@@ -6,9 +6,9 @@ Github repo: https://github.com/Karel911/TRACER
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from model.EfficientNet import EfficientNet
-from util.effi_utils import get_model_shape
-from modules.att_modules import RFB_Block, aggregation, ObjectAttention
+from TRACER.model.EfficientNet import EfficientNet
+from TRACER.util.effi_utils import get_model_shape
+from TRACER.modules.att_modules import RFB_Block, aggregation, ObjectAttention
 
 
 class TRACER(nn.Module):
