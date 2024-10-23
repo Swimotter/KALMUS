@@ -9,6 +9,7 @@ from skimage.segmentation import watershed
 from skimage.filters import rank, sobel
 from skimage import graph
 import scipy.stats as stats
+from TRACER import inference
 
 
 def compute_dominant_color(image, n_clusters=3, max_iter=10, threshold_error=1.0, attempts=10):

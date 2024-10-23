@@ -12,6 +12,8 @@ import threading
 from kalmus.utils import artist as artist
 from kalmus.utils.artist import get_letter_box_from_frames, get_contrast_matrix_and_labeled_image
 
+from TRACER.inference import Inference
+
 # Available metrics for computing the color of a frame
 color_metrics = ["Average", "Median", "Mode", "Top-dominant", "Weighted-dominant",
                  "Brightest", "Bright"]
@@ -191,6 +193,18 @@ class Barcode:
                 back_frame = frame
             processed_frame = back_frame
 
+
+    ### FOCUS FOCUS FOCUS???
+        elif self.frame_type == "Focus":
+            # _, back_frame = foreback_segmentation(frame)
+            # if back_frame.size == 0:
+            #     # Empty background part use the whole frame instead
+            #     back_frame = frame
+            
+            # focus stuff...?
+            processed_frame = Inference(frame).test()
+            
+            
         return processed_frame
 
     def _resize_frame(self, frame):
