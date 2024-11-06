@@ -10,7 +10,7 @@ import numpy as np
 import threading
 
 from kalmus.utils import artist as artist
-from kalmus.utils.focus import Focus
+from kalmus.utils.focus import find_focus
 from kalmus.utils.artist import get_letter_box_from_frames, get_contrast_matrix_and_labeled_image
 
 # Available metrics for computing the color of a frame
@@ -61,17 +61,6 @@ class Barcode:
         self.color_metric = color_metric
         self.frame_type = frame_type
 
-        if self.frame_type == "Focus":
-            self.focus = Focus({"img_size": 640,
-                                "arch": 7,
-                                "multi_gpu": True,
-                                "RFB_aggregated_channel": [32, 64, 128],
-                                "frequency_radius": 16,
-                                "gamma": 0.1,
-                                "denoise": 0.93,
-                                "batch_size": 32,
-                                "num_workers": 4})
-
         self.barcode_type = barcode_type
         self.meta_data = {}
 
@@ -108,7 +97,13 @@ class Barcode:
         :param video_path_name: The path to the video file
         :type video_path_name: str
         """
-        self.video = cv2.VideoCapture(video_path_name)
+        # Run saliency detection and use new video
+        if self.frame_type == "Focus":
+            find_focus("cuda:0", "./UFO/models/video_best.pth", video_path_name, 5, 224)
+            self.video = cv2.VideoCapture("./temp.mp4")
+        else:
+            self.video = cv2.VideoCapture(video_path_name)
+
 
         # Get the fps of the video
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
@@ -124,6 +119,8 @@ class Barcode:
 
         if self.save_frames_in_generation:
             self._determine_save_frame_param()
+        
+
 
     def find_film_letterbox(self, num_sample=30):
         """
@@ -204,8 +201,10 @@ class Barcode:
                 back_frame = frame
             processed_frame = back_frame
         elif self.frame_type == "Focus":
-            self.focus.set_loader(frame)
-            processed_frame = self.focus.test()
+            tmp = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            print(tmp.max())
+            _,mask = cv2.threshold(tmp,100,255,cv2.THRESH_BINARY)
+            processed_frame = cv2.bitwise_and(frame, frame, mask=mask)
             
             
         return processed_frame
