@@ -98,22 +98,3 @@ def find_focus(gpu_id, model_path, video_path, group_size, img_size):
         for img in new_frame_result:
             vw.write(np.array(img))
         vw.release()
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model', default='./models/video_best.pth', help="restore checkpoint")
-    parser.add_argument('--data_path',default='./demo_mp4/video/kobe_1v1.mp4', help="dataset for evaluation")
-    parser.add_argument('--output_dir', default='./demo_mp4/result', help='directory for result')
-    parser.add_argument('--gpu_id', default='cuda:0', help='id of gpu')
-    parser.add_argument('--crf', default=False, help='make outline clear')
-    args = parser.parse_args()
-    
-    gpu_id = args.gpu_id
-    device = torch.device(gpu_id)
-    model_path = args.model
-
-    val_datapath = [args.data_path]
-
-    save_root_path = [args.output_dir]
-
-    main(gpu_id, model_path, val_datapath, save_root_path, 5, 224, 'image',args.crf)
