@@ -1,0 +1,3 @@
+[submodule "BiRefNet"]
+	path = BiRefNet
+	url = https://github.com/ZhengPeng7/BiRefNet.git
