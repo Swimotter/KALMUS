@@ -112,6 +112,17 @@ def compute_mode_color(image, bin_size=10):
     mode_color, counts = stats.mode(image, axis=0)
     return (mode_color[0] * bin_size), counts
 
+def seperate_opacity(image):
+    # Assume has opacity only if 4 channels
+    has_opacity = image.shape[2] == 4
+    opacity = None
+    if has_opacity:
+        opacity = image[:,:,3:]
+        image = image[:,:,:3]
+        opacity = flatten_image(opacity)
+        opacity = np.squeeze(opacity)
+    return opacity and np.sum(opacity) != 0, image, opacity
+    
 
 def compute_mean_color(image):
     """
@@ -122,8 +133,13 @@ def compute_mean_color(image):
     :return: The average color of the image (averaged across the channels). shape==channels.
     :rtype: numpy.ndarray
     """
+    has_opacity, image, opacity = seperate_opacity(image)
+    
     image = flatten_image(image)
-    avg_color = np.average(image, axis=0)
+    if has_opacity and np.sum(opacity) != 0:
+        avg_color = np.average(image, axis=0, weights=opacity)
+    else:
+        avg_color = np.average(image, axis=0)
     return avg_color
 
 
