@@ -99,7 +99,7 @@ class Barcode:
         """
         # Run saliency detection and use new video
         if self.frame_type == "Focus":
-            find_focus("cuda:0", "./UFO/models/video_best.pth", video_path_name, 5, 224)
+            find_focus(video_path_name)
             self.video = cv2.VideoCapture("./temp.mp4")
         else:
             self.video = cv2.VideoCapture(video_path_name)
@@ -179,7 +179,15 @@ class Barcode:
             frame = self._resize_frame(frame)
 
         if self.frame_type == "Whole_frame":
-            processed_frame = frame
+            tmp = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            alpha = np.sum(frame, axis=-1) > 0
+
+            # Convert True/False to 0/255 and change type to "uint8" to match "na"
+            alpha = np.uint8(alpha * 255)
+
+            # Stack new alpha layer with existing image to go from BGR to BGRA, i.e. 3 channels to 4 channels
+            processed_frame = np.dstack((frame, alpha))
+            # processed_frame = frame
         elif self.frame_type == "High_contrast_region":
             contrast_matrix, labels = get_contrast_matrix_and_labeled_image(frame)
             highest_contrast_region = np.sum(contrast_matrix, axis=1).argmax()
@@ -201,10 +209,13 @@ class Barcode:
                 back_frame = frame
             processed_frame = back_frame
         elif self.frame_type == "Focus":
-            tmp = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            print(tmp.max())
-            _,mask = cv2.threshold(tmp,100,255,cv2.THRESH_BINARY)
-            processed_frame = cv2.bitwise_and(frame, frame, mask=mask)
+            alpha = np.sum(frame, axis=-1) > 0
+
+            # Convert True/False to 0/255 and change type to "uint8" to match "na"
+            alpha = np.uint8(alpha * 255)
+
+            # Stack new alpha layer with existing image to go from BGR to BGRA, i.e. 3 channels to 4 channels
+            processed_frame = np.dstack((frame, alpha))
             
             
         return processed_frame

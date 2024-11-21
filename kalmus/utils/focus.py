@@ -1,100 +1,73 @@
-import os
-from PIL import Image
-import torch
-from torchvision import transforms
-from UFO.model_video import build_model
+import cv2 as cv
 import numpy as np
-import cv2
-import argparse
-to_pil = transforms.ToPILImage()
+import torch
+import torch.nn.functional as F
+from torchvision import transforms
+from torchvision.io import read_video
+from sklearn.cluster import KMeans
+from transformers import AutoModelForImageSegmentation
 
-def find_focus(gpu_id, model_path, video_path, group_size, img_size):
-    device = torch.device(gpu_id)
-    net = build_model(device).to(device)
-    net=torch.nn.DataParallel(net)
-    net.load_state_dict(torch.load(model_path, map_location=gpu_id, weights_only=True))
-    net.eval()
-    net = net.module.to(device)
-    img_transform = transforms.Compose([transforms.Resize((img_size, img_size)), transforms.ToTensor(),
-                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])])
-    img_transform_gray = transforms.Compose([transforms.Resize((img_size, img_size)), transforms.ToTensor(),
-                                             transforms.Normalize(mean=[0.449], std=[0.226])])            
-    
-    with torch.no_grad():
-        vc = cv2.VideoCapture(video_path)
-        rval = vc.isOpened()
-        c=0
-        frame_list=[]
-        while rval:
-            rval, frame = vc.read()
-            if rval:
-                frame_list.append(frame)
-                c=c+1
-            else:
-                break
-        vc.release()
+def transform_image(image):
+    transform = transforms.Compose([
+        transforms.Resize((1024, 1024)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
+    return transform(image)
 
-        idx=[]
-        block_size=(len(frame_list)+group_size-1)//group_size
-        for i in range(block_size):
-            cur=i
-            while cur<len(frame_list):
-                idx.append(cur)
-                cur+=block_size
-        new_frame_list=[]
-        for i in range(len(frame_list)):
-            new_frame_list.append(frame_list[idx[i]])
-        frame_list=new_frame_list
-        
-        frame_result=[]
-        cur_class_rgb = torch.zeros(len(frame_list), 3, img_size, img_size)
-        for i, frame in enumerate(frame_list):
-            frame = Image.fromarray(frame)
-            if frame.mode == 'RGB':
-                frame = img_transform(frame)
-            else:
-                frame = img_transform_gray(frame)
-            cur_class_rgb[i, :, :, :] = frame
+# Function to convert tensor to PIL image
+# def tensor_to_pil(tensor):
+#     return transforms.ToPILImage() #(tensor.cpu())
 
-        cur_class_mask = torch.zeros(len(frame_list), img_size, img_size)
+# Function to perform K-means clustering on RGB pixel data
+def run_kmeans_on_pixels(pixel_tensor, n_clusters=3):
+    pixel_tensor = pixel_tensor.view(-1, 3)
+    pixel_data = pixel_tensor.numpy()
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0)
+    kmeans.fit(pixel_data)
+    return kmeans.labels_, kmeans.cluster_centers_
 
-        divided = len(frame_list) // group_size
-        rested = len(frame_list) % group_size
-        if divided != 0:
-            for k in range(divided):
-                group_rgb = cur_class_rgb[(k * group_size): ((k + 1) * group_size)]
-                group_rgb = group_rgb.to(device)
-                _, pred_mask = net(group_rgb)
-                cur_class_mask[(k * group_size): ((k + 1) * group_size)] = pred_mask
-        if rested != 0:
-            group_rgb_tmp_l = cur_class_rgb[-rested:]
-            group_rgb_tmp_r = cur_class_rgb[:group_size - rested]
-            group_rgb = torch.cat((group_rgb_tmp_l, group_rgb_tmp_r), dim=0)
-            group_rgb = group_rgb.to(device)
-            _, pred_mask = net(group_rgb)
-            cur_class_mask[(divided * group_size):] = pred_mask[:rested]
 
-        for i, img in enumerate(frame_list):
-            result = cur_class_mask[i, :, :]
-            prediction = np.array(to_pil(result.data.squeeze().cpu()))
+def find_focus(video_path):
+    birefnet = AutoModelForImageSegmentation.from_pretrained('zhengpeng7/BiRefNet', trust_remote_code=True)
+    device = 'cuda'
+    torch.set_float32_matmul_precision(['high', 'highest'][0])
 
-            img = Image.fromarray(img)
-            w, h = img.size
-            img=img.resize((prediction.shape[0],prediction.shape[1]),Image.BILINEAR)
-            result=torch.from_numpy(np.array(prediction)/255).view(prediction.shape[0],prediction.shape[1],1).repeat(1,1,3).numpy()
-            img=np.array(img)
-            result=img*result
-            result=Image.fromarray(result.astype(np.uint8))
-            result = result.resize((w, h), Image.BILINEAR)
-            frame_result.append(result)
+    birefnet.to(device)
+    birefnet.eval()
 
-        new_frame_result=[]
-        for frame in frame_result:
-            new_frame_result.append(frame)
-        for i, frame in enumerate(frame_result):
-            new_frame_result[idx[i]]=frame
-        
-        vw = cv2.VideoWriter("./temp.mp4", cv2.VideoWriter.fourcc(*'H264'), 24, (w, h))
-        for img in new_frame_result:
-            vw.write(np.array(img))
-        vw.release()
+    # Read the video file
+    # video_frames: Tensor[T, H, W, C] where T = number of frames, H = height, W = width, C = channels
+    # audio_frames: Tensor[K, N] where K and N are audio dimensions
+    # info: Metadata about the video and audio
+    video_frames, audio_frames, info = read_video(video_path)
+
+    tensor_to_pil = transforms.ToPILImage()
+    vw = cv.VideoWriter("./temp.mp4", cv.VideoWriter.fourcc(*'H264'), 24, (video_frames[0].shape[1], video_frames[0].shape[0]))
+
+    for i in range(video_frames.shape[0]):
+        i = int(i)
+        print(i)
+        image_tensor = video_frames[i]
+
+        # Convert tensor to PIL image
+        pil_image = tensor_to_pil(image_tensor.permute(2, 0, 1))  # Change to (channels, height, width)
+
+        # Transform and send to CUDA as needed
+        input_images = transform_image(pil_image).unsqueeze(0).to('cuda')
+
+        # Prediction
+        with torch.no_grad():
+            preds = birefnet(input_images)[-1].sigmoid().cpu()
+        pred = preds[0].squeeze()
+
+        # Resize `pred` to match `image_tensor`'s spatial dimensions
+        pred_resized = F.interpolate(pred.unsqueeze(0).unsqueeze(0), size=image_tensor.shape[:2], mode='bilinear', align_corners=False).squeeze()
+
+        pred_resized[pred_resized < 0.5] = 0
+        pred_resized[pred_resized >= 0.5] = 1
+        foreground = image_tensor.clone()
+        foreground[~pred_resized.to(torch.bool)] = 0
+
+        vw.write(cv.cvtColor(np.array(foreground), cv.COLOR_BGR2RGB))
+    vw.release()
