@@ -179,15 +179,7 @@ class Barcode:
             frame = self._resize_frame(frame)
 
         if self.frame_type == "Whole_frame":
-            tmp = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            alpha = np.sum(frame, axis=-1) > 0
-
-            # Convert True/False to 0/255 and change type to "uint8" to match "na"
-            alpha = np.uint8(alpha * 255)
-
-            # Stack new alpha layer with existing image to go from BGR to BGRA, i.e. 3 channels to 4 channels
-            processed_frame = np.dstack((frame, alpha))
-            # processed_frame = frame
+            processed_frame = frame
         elif self.frame_type == "High_contrast_region":
             contrast_matrix, labels = get_contrast_matrix_and_labeled_image(frame)
             highest_contrast_region = np.sum(contrast_matrix, axis=1).argmax()
