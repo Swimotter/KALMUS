@@ -121,7 +121,7 @@ def seperate_opacity(image):
         image = image[:,:,:3]
         opacity = flatten_image(opacity)
         opacity = np.squeeze(opacity)
-    return opacity and np.sum(opacity) != 0, image, opacity
+    return opacity is not None and np.sum(opacity) != 0, image, opacity
     
 
 def compute_mean_color(image):

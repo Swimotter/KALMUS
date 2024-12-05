@@ -36,19 +36,17 @@ def find_focus(video_path):
     birefnet.to(device)
     birefnet.eval()
 
-    # Read the video file
-    # video_frames: Tensor[T, H, W, C] where T = number of frames, H = height, W = width, C = channels
-    # audio_frames: Tensor[K, N] where K and N are audio dimensions
-    # info: Metadata about the video and audio
-    video_frames, audio_frames, info = read_video(video_path)
-
     tensor_to_pil = transforms.ToPILImage()
-    vw = cv.VideoWriter("./temp.mp4", cv.VideoWriter.fourcc(*'H264'), 24, (video_frames[0].shape[1], video_frames[0].shape[0]))
 
-    for i in range(video_frames.shape[0]):
-        i = int(i)
-        print(i)
-        image_tensor = video_frames[i]
+    cap = cv.VideoCapture(video_path)
+    vw = cv.VideoWriter("./temp.mp4", cv.VideoWriter.fourcc(*'H264'), 24, (int(cap.get(cv.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))))
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        image_tensor = torch.from_numpy(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
 
         # Convert tensor to PIL image
         pil_image = tensor_to_pil(image_tensor.permute(2, 0, 1))  # Change to (channels, height, width)
