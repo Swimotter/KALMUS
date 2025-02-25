@@ -3,6 +3,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from sklearn.cluster import KMeans
+import sys
 from torchvision import transforms
 from transformers import AutoModelForImageSegmentation
 
@@ -48,7 +49,7 @@ def find_focus(video_path):
             break
         
         i += 1
-        print(i)
+        sys.stdout.write(str(i) + '\n')
 
         image_tensor = torch.from_numpy(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
 
