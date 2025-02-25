@@ -1,15 +1,16 @@
 """ GenerateBarcodeWindow Class """
 
-import cv2
-import tkinter
-import tkinter.filedialog
-from tkinter.messagebox import showerror, showwarning, showinfo
 import copy
 import os
 import threading
+import tkinter
+import tkinter.filedialog
+from tkinter.messagebox import showerror, showwarning, showinfo
 
-from kalmus.tkinter_windows.meta_info_windows.SpecifyMetaDataWindow import SpecifyMetaDataWindow
+import cv2
+
 from kalmus.tkinter_windows.gui_utils import resource_path
+from kalmus.tkinter_windows.meta_info_windows.SpecifyMetaDataWindow import SpecifyMetaDataWindow
 
 
 class GenerateBarcodeWindow():

@@ -1,6 +1,6 @@
 # Third-party modules
-import pytest
 import matplotlib.pyplot as plt
+import pytest
 
 # kalmus module being tested
 import kalmus.tkinter_windows.gui_utils as gui_utils

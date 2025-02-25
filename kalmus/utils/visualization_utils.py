@@ -1,11 +1,12 @@
 """ Visualization Utility """
 
-import numpy as np
-import matplotlib.pyplot as plt
-from skimage.color import hsv2rgb, rgb2hsv
 from collections import Counter
-from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from skimage.color import hsv2rgb, rgb2hsv
 
 from kalmus.utils.artist import get_contrast_matrix_and_labeled_image
 

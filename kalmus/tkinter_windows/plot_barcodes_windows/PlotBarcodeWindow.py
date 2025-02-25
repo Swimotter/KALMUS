@@ -5,20 +5,20 @@ RGBColorCubeWindow Class
 OutputCSVWindow Class
 """
 
+import os
 import tkinter
 import tkinter.filedialog
 from tkinter.messagebox import showinfo, showerror
 
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import numpy as np
-import os
+import pandas as pd
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
+from skimage.color import rgb2hsv
 
+from kalmus.tkinter_windows.gui_utils import resource_path, update_hist
 from kalmus.utils.visualization_utils import show_colors_in_cube, show_colors_in_hue_light_scatter_plot, \
     show_colors_in_hue_light_3d_bar_plot
-from kalmus.tkinter_windows.gui_utils import resource_path, update_hist
-from skimage.color import rgb2hsv
-import pandas as pd
 
 
 class PlotBarcodeWindow():

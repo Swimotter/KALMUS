@@ -2,10 +2,10 @@ import cv2 as cv
 import numpy as np
 import torch
 import torch.nn.functional as F
-from torchvision import transforms
-from torchvision.io import read_video
 from sklearn.cluster import KMeans
+from torchvision import transforms
 from transformers import AutoModelForImageSegmentation
+
 
 def transform_image(image):
     transform = transforms.Compose([
@@ -39,12 +39,16 @@ def find_focus(video_path):
     tensor_to_pil = transforms.ToPILImage()
 
     cap = cv.VideoCapture(video_path)
-    vw = cv.VideoWriter("./temp.mp4", cv.VideoWriter.fourcc(*'H264'), 24, (int(cap.get(cv.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))))
+    vw = cv.VideoWriter("./temp.mp4", cv.VideoWriter.fourcc(*'mp4v'), int(cap.get(cv.CAP_PROP_FPS)), (int(cap.get(cv.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv.CAP_PROP_FRAME_HEIGHT))))
 
+    i = 0
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
+        
+        i += 1
+        print(i)
 
         image_tensor = torch.from_numpy(cv.cvtColor(frame, cv.COLOR_BGR2RGB))
 

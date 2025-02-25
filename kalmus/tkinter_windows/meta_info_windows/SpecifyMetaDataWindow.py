@@ -1,7 +1,7 @@
 """ SpecifyMetaDataWindow class """
 
-import tkinter
 import copy
+import tkinter
 
 from kalmus.tkinter_windows.gui_utils import resource_path
 

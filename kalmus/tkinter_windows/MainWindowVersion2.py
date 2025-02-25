@@ -3,30 +3,28 @@ MainWindow Class
 Version2
 """
 
+import copy
 import tkinter
 from tkinter.messagebox import askokcancel, showinfo, showerror
 
-from kalmus.tkinter_windows.GenerateBarcodeWindow import GenerateBarcodeWindow
-from kalmus.tkinter_windows.SaveBarcodeWindow import SaveBarcodeWindow
-from kalmus.tkinter_windows.LoadStackWindow import LoadStackWindow
-from kalmus.tkinter_windows.LoadJsonWindow import LoadJsonWindow
-from kalmus.tkinter_windows.ReshapeBarcodeWindow import ReshapeBarcodeWindow
-from kalmus.tkinter_windows.gui_utils import get_time, paint_hue_hist, update_axes_title, update_axes_ticks, resource_path
-from kalmus.tkinter_windows.plot_barcodes_windows.WhichBarcodeInspectWindow import WhichBarcodeInspectWindow
-from kalmus.tkinter_windows.StatsInfoWindow import StatsInfoWindow
-from kalmus.tkinter_windows.SaveImageWindow import SaveImageWindow
-from kalmus.tkinter_windows.meta_info_windows.WhichBarcodeCheckMeta import WhichBarcodeCheckMeta
-from kalmus.tkinter_windows.time_points_windows.CheckTimePointWindow import CheckTimePointWindow
-
+import matplotlib
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
-
 from skimage.color import rgb2hsv
 
-import numpy as np
-
-import copy
-import matplotlib
+from kalmus.tkinter_windows.GenerateBarcodeWindow import GenerateBarcodeWindow
+from kalmus.tkinter_windows.LoadJsonWindow import LoadJsonWindow
+from kalmus.tkinter_windows.LoadStackWindow import LoadStackWindow
+from kalmus.tkinter_windows.ReshapeBarcodeWindow import ReshapeBarcodeWindow
+from kalmus.tkinter_windows.SaveBarcodeWindow import SaveBarcodeWindow
+from kalmus.tkinter_windows.SaveImageWindow import SaveImageWindow
+from kalmus.tkinter_windows.StatsInfoWindow import StatsInfoWindow
+from kalmus.tkinter_windows.gui_utils import get_time, paint_hue_hist, update_axes_title, update_axes_ticks, \
+    resource_path
+from kalmus.tkinter_windows.meta_info_windows.WhichBarcodeCheckMeta import WhichBarcodeCheckMeta
+from kalmus.tkinter_windows.plot_barcodes_windows.WhichBarcodeInspectWindow import WhichBarcodeInspectWindow
+from kalmus.tkinter_windows.time_points_windows.CheckTimePointWindow import CheckTimePointWindow
 
 matplotlib.rcParams['keymap.back'].remove('left')
 matplotlib.rcParams['keymap.forward'].remove('right')

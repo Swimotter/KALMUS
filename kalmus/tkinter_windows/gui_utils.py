@@ -1,13 +1,14 @@
 """ KALMUS tkinter GUI utility """
 
-import cv2
-import kalmus.utils.measure_utils as measure_utils
 import os
 import sys
+
+import cv2
 import numpy as np
+from matplotlib.ticker import FuncFormatter
 from skimage.color import hsv2rgb, rgb2hsv
 
-from matplotlib.ticker import FuncFormatter
+import kalmus.utils.measure_utils as measure_utils
 
 
 def compare_two_barcodes(barcode_1, barcode_2):

@@ -1,5 +1,7 @@
 from multiprocessing import freeze_support
+
 import cv2
+
 from kalmus.utils.focus import Focus
 
 freeze_support()

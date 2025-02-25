@@ -1,11 +1,11 @@
 """ Command line startup of the kalmus software """
 
+import argparse
+import os
+import sys
+
 from kalmus.barcodes.BarcodeGenerator import BarcodeGenerator
 from kalmus.tkinter_windows.MainWindowVersion2 import MainWindow
-import os
-
-import argparse
-import sys
 
 
 def parse_args_into_dict(args):

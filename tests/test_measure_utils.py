@@ -1,8 +1,8 @@
 # Third-party modules
-import pytest
-import numpy as np
-import matplotlib.pyplot as plt
 import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 
 # kalmus module being tested
 import kalmus.utils.measure_utils as measure_utils

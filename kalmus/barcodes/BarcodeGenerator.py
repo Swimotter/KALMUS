@@ -1,7 +1,8 @@
 """ Barcode Generator Class"""
 
-import numpy as np
 import json
+
+import numpy as np
 
 from kalmus.barcodes.Barcode import ColorBarcode, BrightnessBarcode
 
@@ -10,7 +11,7 @@ color_metrics = ["Average", "Median", "Mode", "Top-dominant", "Weighted-dominant
                  "Brightest", "Bright"]
 
 # Available types of sampling frame (which part of frame is region of interest)
-frame_types = ["Whole_frame", "High_contrast_region", "Low_contrast_region", "Foreground", "Background"]
+frame_types = ["Whole_frame", "High_contrast_region", "Low_contrast_region", "Foreground", "Background", "Focus"]
 
 # Available types of barcode
 barcode_types = ["Color", "Brightness"]

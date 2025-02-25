@@ -142,6 +142,7 @@ Alternatively, you could import the main function of the GUI from `kalmus.comman
 
 ```python
 from kalmus.command_line_gui import main
+
 main()
 ```
 

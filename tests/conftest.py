@@ -1,7 +1,7 @@
 # Third-party modules
-import pytest
 import cv2
 import matplotlib.pyplot as plt
+import pytest
 
 
 # Test data shared between module tests

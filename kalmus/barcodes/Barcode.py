@@ -4,14 +4,14 @@ Barcode Classes
 
 import copy
 import json
+import threading
 
 import cv2
 import numpy as np
-import threading
 
 from kalmus.utils import artist as artist
-from kalmus.utils.focus import find_focus
 from kalmus.utils.artist import get_letter_box_from_frames, get_contrast_matrix_and_labeled_image
+from kalmus.utils.focus import find_focus
 
 # Available metrics for computing the color of a frame
 color_metrics = ["Average", "Median", "Mode", "Top-dominant", "Weighted-dominant",

@@ -1,11 +1,12 @@
 """ SaveImageWindow Class """
 
-import tkinter
-from tkinter.messagebox import showerror, showinfo
-import tkinter.filedialog
-import matplotlib.pyplot as plt
-import cv2
 import os
+import tkinter
+import tkinter.filedialog
+from tkinter.messagebox import showerror, showinfo
+
+import cv2
+import matplotlib.pyplot as plt
 
 from kalmus.tkinter_windows.gui_utils import resource_path
 

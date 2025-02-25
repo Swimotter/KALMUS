@@ -1,9 +1,10 @@
 """ CheckTimePointWindow Class """
 
 import tkinter
+
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)
 import numpy as np
+from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg)
 
 from kalmus.tkinter_windows.gui_utils import get_time, resource_path
 

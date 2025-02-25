@@ -1,9 +1,10 @@
 # Third-party modules
-import pytest
 import os
 import warnings
-import numpy as np
+
 import cv2
+import numpy as np
+import pytest
 
 # Filter out the warnings raised by numpy.dtype and numpy.ufunc
 # See pull requests on NumPy https://github.com/numpy/numpy/pull/432 for references about these warnings

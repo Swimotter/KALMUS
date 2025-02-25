@@ -1,14 +1,15 @@
 """ Utility artist """
 
-import numpy as np
-import cv2
 import csv
+
+import cv2
+import numpy as np
+import scipy.stats as stats
 from scipy import ndimage
+from skimage import graph
+from skimage.filters import rank, sobel
 from skimage.morphology import disk, remove_small_objects
 from skimage.segmentation import watershed
-from skimage.filters import rank, sobel
-from skimage import graph
-import scipy.stats as stats
 
 
 def compute_dominant_color(image, n_clusters=3, max_iter=10, threshold_error=1.0, attempts=10):

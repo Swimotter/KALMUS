@@ -1,8 +1,9 @@
 """ MetaInfoWindow Class """
 
 import tkinter
-from kalmus.tkinter_windows.meta_info_windows.SpecifyMetaDataWindow import SpecifyMetaDataWindow
+
 from kalmus.tkinter_windows.gui_utils import resource_path
+from kalmus.tkinter_windows.meta_info_windows.SpecifyMetaDataWindow import SpecifyMetaDataWindow
 
 keys = ["Film Title", "Directors", "Country of Origin", "Produced Year", "Genre"]
 

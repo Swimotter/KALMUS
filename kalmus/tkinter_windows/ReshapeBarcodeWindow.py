@@ -1,7 +1,7 @@
 """ ReshapeBarcodeWindow Class """
 
 import tkinter
-import copy
+
 import cv2
 
 from kalmus.tkinter_windows.gui_utils import update_graph, resource_path

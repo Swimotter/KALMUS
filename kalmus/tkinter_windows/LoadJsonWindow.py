@@ -1,9 +1,9 @@
 """ LoadJsonWindow Class """
 
-import tkinter.filedialog
-from tkinter.messagebox import showerror, showinfo
 import copy
 import os
+import tkinter.filedialog
+from tkinter.messagebox import showerror, showinfo
 
 from kalmus.tkinter_windows.gui_utils import resource_path, update_graph
 

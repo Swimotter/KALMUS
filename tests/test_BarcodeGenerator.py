@@ -1,5 +1,4 @@
 # Third-party modules
-import pytest
 
 # kalmus module being tested
 import kalmus.barcodes.BarcodeGenerator as Generator

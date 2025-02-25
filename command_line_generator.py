@@ -1,6 +1,7 @@
-from kalmus.barcodes.BarcodeGenerator import BarcodeGenerator
 import argparse
 import sys
+
+from kalmus.barcodes.BarcodeGenerator import BarcodeGenerator
 
 
 def parse_args_into_dict(args):
@@ -16,7 +17,7 @@ def parse_args_into_dict(args):
     # Frame type
     ap.add_argument("--frame_type", required=True, type=str,
                     help="Type of the frame sampling. available options: [Whole_frame, High_contrast_region, "
-                         "High_contrast_region, Low_contrast region, Foreground, Background]")
+                         "High_contrast_region, Low_contrast region, Foreground, Background, Focus]")
 
     # Barcode type
     ap.add_argument("--barcode_type", required=True, type=str,
@@ -71,3 +72,6 @@ def main(args=sys.argv[1:]):
                                        rescale_frames_factor=args["rescale_frame_factor"])
     barcode = barcode_generator.get_barcode()
     barcode.save_as_json(filename=args["output_path"])
+
+if __name__ == "__main__":
+    main()

@@ -1,9 +1,9 @@
 """ SaveBarcodeWindow Class """
 
+import os
 import tkinter
 import tkinter.filedialog
 from tkinter.messagebox import showwarning, showinfo
-import os
 
 from kalmus.tkinter_windows.gui_utils import resource_path
 

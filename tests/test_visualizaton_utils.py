@@ -1,7 +1,7 @@
 # Third-party modules
-import pytest
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 
 # kalmus module being tested
 import kalmus.utils.visualization_utils as visualization_utils

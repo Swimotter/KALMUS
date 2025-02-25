@@ -1,9 +1,10 @@
 # Third-party modules
-import pytest
 import os
 
+import pytest
+
 # kalmus module being tested
-import kalmus.command_line_generator as cli
+import command_line_generator as cli
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")

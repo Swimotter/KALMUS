@@ -1,10 +1,11 @@
 # Third-party modules
-import pytest
-import numpy as np
-import matplotlib.pyplot as plt
-import cv2
 import os
 import warnings
+
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 
 # Filter out the warnings raised by numpy.dtype and numpy.ufunc
 # See pull requests on NumPy https://github.com/numpy/numpy/pull/432 for references about these warnings
