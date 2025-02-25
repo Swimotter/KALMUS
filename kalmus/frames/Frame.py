@@ -12,9 +12,9 @@ class Frame:
 
     @classmethod
     def register(cls):
-        print("Registered: %s".format(cls.frame_type))
+        print(f"Registered Frame: {cls.frame_type}")
 
-        cls.frame_types[cls.frame_types] = cls
+        cls.frame_types[cls.frame_type] = cls
 
     @classmethod
     def load_video(cls, video_path):

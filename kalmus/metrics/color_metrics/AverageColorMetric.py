@@ -1,10 +1,10 @@
 from kalmus.utils.artist import compute_mean_color
 
-from kalmus.modules.metrics.color_metrics.ColorMetric import ColorMetric
+from kalmus.metrics.color_metrics.ColorMetric import ColorMetric
 
 
 class AverageColorMetric(ColorMetric):
-    metric_name = "average"
+    color_metric_type = "average"
 
     @classmethod
     def get_color(cls, frame):

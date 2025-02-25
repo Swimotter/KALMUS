@@ -4,20 +4,13 @@ import json
 
 import numpy as np
 
-from kalmus.barcodes.Barcode import ColorBarcode, BrightnessBarcode
-
-# Available metrics for computing the color of a frame
-color_metrics = ["Average", "Median", "Mode", "Top-dominant", "Weighted-dominant",
-                 "Brightest", "Bright"]
-
-# Available types of sampling frame (which part of frame is region of interest)
-frame_types = ["Whole_frame", "High_contrast_region", "Low_contrast_region", "Foreground", "Background", "Focus"]
-
-# Available types of barcode
-barcode_types = ["Color", "Brightness"]
+from kalmus.barcodes.Barcode import Barcode
+from kalmus.frames.Frame import Frame
+from kalmus.metrics.brightness_metrics.BrightnessMetric import BrightnessMetric
+from kalmus.metrics.color_metrics.ColorMetric import ColorMetric
 
 
-def build_barcode_from_json(path_to_json, barcode_type="Color"):
+def build_barcode_from_json(path_to_json, barcode_type="color"):
     """
     Helper function that build a barcode object from the attributes stored in a json file
 
@@ -28,8 +21,8 @@ def build_barcode_from_json(path_to_json, barcode_type="Color"):
     :return: The barcode built from the json file at given path
     :rtype: class:`kalmus.barcodes.Barcode.ColorBarcode` or class:`kalmus.barcodes.Barcode.BrightnessBarcode`
     """
-    assert barcode_type in barcode_types, "Invalid barcode type. The available types of " \
-                                          "the barcode are {:s}".format(str(barcode_types))
+    assert barcode_type in Barcode.barcode_types.keys(), "Invalid barcode type. The available types of " \
+                                          "the barcode are {:s}".format(str(Barcode.barcode_types.keys()))
     with open(path_to_json, "r") as infile:
         object_dict = json.load(infile)
     infile.close()
@@ -37,21 +30,10 @@ def build_barcode_from_json(path_to_json, barcode_type="Color"):
     # Make sure the barcode_type is correctly capitalized
     barcode_type = barcode_type.capitalize()
 
-    if barcode_type == "Color":
-        barcode = ColorBarcode(color_metric=object_dict["color_metric"], frame_type=object_dict["frame_type"],
+    barcode = Barcode.barcode_types[barcode_type](object_dict["metric"], frame_type=object_dict["frame_type"],
                                sampled_frame_rate=object_dict["sampled_frame_rate"],
-                               skip_over=object_dict["skip_over"], total_frames=int(object_dict["total_frames"]),
-                               barcode_type=barcode_type)
-
-        barcode.colors = np.array(object_dict["colors"]).astype("uint8")
-
-    elif barcode_type == "Brightness":
-        barcode = BrightnessBarcode(color_metric=object_dict["color_metric"], frame_type=object_dict["frame_type"],
-                                    sampled_frame_rate=object_dict["sampled_frame_rate"],
-                                    skip_over=object_dict["skip_over"], total_frames=int(object_dict["total_frames"]),
-                                    barcode_type=barcode_type)
-
-        barcode.brightness = np.array(object_dict["brightness"]).astype("uint8")
+                               skip_over=object_dict["skip_over"], total_frames=int(object_dict["total_frames"]))
+    barcode.load_dict_value(object_dict)
 
     barcode.set_letterbox_bound(object_dict["low_bound_ver"], object_dict["high_bound_ver"],
                                 object_dict["low_bound_hor"], object_dict["high_bound_hor"])
@@ -78,7 +60,7 @@ def build_barcode_from_json(path_to_json, barcode_type="Color"):
     return barcode
 
 
-class BarcodeGenerator():
+class BarcodeGenerator:
     """
     Barcode Generator Class
 
@@ -96,23 +78,25 @@ class BarcodeGenerator():
     :param total_frames: Total number of frames that will be computed (included in the barcode/sampled frames)
     :type total_frames: int
     """
-    def __init__(self, frame_type="Whole_frame", color_metric="Average", barcode_type="Color",
+    def __init__(self, frame_type="whole_frame", color_metric="average", brightness_metric=None, barcode_type="color",
                  sampled_frame_rate=1, skip_over=0, total_frames=10):
         """
         Initialize the parameters for the barcode generator
         """
-        assert frame_type in frame_types, "Invalid frame acquisition method. Five types of frame acquisition" \
-                                          " methods are available including {:s}".format(str(frame_types))
-        assert color_metric in color_metrics, "Invalid color metric. Seven color metrics are available " \
-                                              "including {:s}".format(str(color_metrics))
-        assert barcode_type in barcode_types, "Invalid barcode type. Two types of barcode are available " \
-                                              "including {:s}".format(str(barcode_types))
-        assert not (color_metric == "Bright" and frame_type in frame_types[1:]), \
-            "Color metric Bright can not be used when the frame acquisition " \
-            "methods are {:s}".format(str(frame_types[1:]))
+        assert frame_type in Frame.frame_types.keys(), "Invalid frame acquisition method." \
+                                          "Valid frame types are: {:s}".format(str(Frame.frame_types.keys()))
+        if brightness_metric is not None:
+            assert brightness_metric in BrightnessMetric.brightness_metric_types.keys(), "Invalid brightness metric." \
+                                                  "Valid brightness metrics are: {:s}".format(str(BrightnessMetric.brightness_metric_types.keys()))
+            self.metric = brightness_metric
+        else:
+            assert color_metric in ColorMetric.color_metric_types.keys(), "Invalid color metric." \
+                                                  "Valid color metrics are: {:s}".format(str(ColorMetric.color_metric_types.keys()))
+            self.metric = color_metric
+        assert barcode_type in Barcode.barcode_types.keys(), "Invalid barcode type. Two types of barcode are available " \
+                                              "Valid barcode types are: {:s}".format(str(Barcode.barcode_types.keys()))
 
         self.frame_type = frame_type
-        self.color_metric = color_metric
         self.barcode_type = barcode_type
         self.sampled_frame_rate = sampled_frame_rate
         self.skip_over = skip_over
@@ -123,12 +107,10 @@ class BarcodeGenerator():
         """
         Instantiate the barcode object using the given generation parameters
         """
-        if self.barcode_type == "Color":
-            self.barcode = ColorBarcode(self.color_metric, self.frame_type, self.sampled_frame_rate,
-                                        self.skip_over, self.total_frames, barcode_type="Color")
-        elif self.barcode_type == "Brightness":
-            self.barcode = BrightnessBarcode(self.color_metric, self.frame_type, self.sampled_frame_rate,
-                                             self.skip_over, self.total_frames, barcode_type="Brightness")
+        self.barcode = Barcode.barcode_types[self.barcode_type](self.metric, frame_type=self.frame_type,
+                                                      sampled_frame_rate=self.sampled_frame_rate,
+                                                      skip_over=self.skip_over,
+                                                      total_frames=self.total_frames)
 
     def generate_barcode(self, video_file_path, user_defined_letterbox=False,
                          low_ver=-1, high_ver=-1, left_hor=-1, right_hor=-1,
@@ -170,16 +152,7 @@ class BarcodeGenerator():
         if rescale_frames_factor > 0:
             self.barcode.enable_rescale_frames_in_generation(rescale_frames_factor)
 
-        if self.barcode_type == "Color":
-            if num_thread is not None:
-                self.barcode.multi_thread_collect_colors(video_file_path, num_thread)
-            else:
-                self.barcode.collect_colors(video_file_path)
-        elif self.barcode_type == "Brightness":
-            if num_thread is not None:
-                self.barcode.multi_thread_collect_brightness(video_file_path, num_thread)
-            else:
-                self.barcode.collect_brightness(video_file_path)
+        self.barcode.generate(video_file_path, num_thread)
 
     def generate_barcode_from_json(self, json_file_path, barcode_type=None):
         """

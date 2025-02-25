@@ -1,38 +1,13 @@
-"""
-Barcode Classes
-"""
-
 import copy
 import json
-import threading
 
 import cv2
 import numpy as np
 
-from kalmus.utils import artist as artist
-from kalmus.utils.artist import get_letter_box_from_frames, get_contrast_matrix_and_labeled_image
-from kalmus.utils.focus import find_focus
+from kalmus.metrics.color_metrics.ColorMetric import ColorMetric
+from kalmus.frames.Frame import Frame
+from kalmus.utils.artist import get_letter_box_from_frames
 
-# Available metrics for computing the color of a frame
-color_metrics = ["Average", "Median", "Mode", "Top-dominant", "Weighted-dominant",
-                 "Brightest", "Bright"]
-
-
-def foreback_segmentation(frame):
-    """
-    Helper function
-    Segmented the input frame into two parts: foreground and background, using the GrabCut
-
-    :param frame: Input frame
-    :type frame: numpy.ndarray
-    :return: 1D image of the foreground part of the image, and 1D image of the background part of the image \
-             Expected shape== Number of pixels x channels
-    :rtype: (numpy.ndarray, numpy.ndarray)
-    """
-    fore_frame, back_frame = artist.grabcut_foreback_segmentation(frame, start_row=0, row_size=frame.shape[0] - 1,
-                                                                  start_col=frame.shape[1] // 6,
-                                                                  col_size=frame.shape[1] * 2 // 3)
-    return fore_frame, back_frame
 
 
 class Barcode:
@@ -49,19 +24,30 @@ class Barcode:
     :type skip_over: int
     :param total_frames: The total number of frames (computed) included in the barcode
     :type total_frames: int
-    :param barcode_type: The type of the barcode
     :type barcode_type: str
     """
 
-    def __init__(self, color_metric, frame_type, sampled_frame_rate=1, skip_over=0, total_frames=10,
-                 barcode_type=None):
+    barcode_type = "none"
+
+    barcode_types = {}
+    """
+    Contains references to every barcode class
+    String identifiers used as keys
+    """
+
+    @classmethod
+    def register(cls):
+        print(f"Registered Barcode: {cls.barcode_type}")
+
+        cls.barcode_types[cls.barcode_type] = cls
+
+    def __init__(self, metric, frame_type, sampled_frame_rate=1, skip_over=0, total_frames=10):
         """
         Initialize the barcode with the given parameters
         """
-        self.color_metric = color_metric
+        self.metric = metric
         self.frame_type = frame_type
 
-        self.barcode_type = barcode_type
         self.meta_data = {}
 
         self.sampled_frame_rate = sampled_frame_rate
@@ -90,6 +76,9 @@ class Barcode:
         self.rescale_frames_in_generation = False
         self.rescale_frame_factor = -1
 
+        if self.barcode_type != "none":
+            self.register()
+
     def read_video(self, video_path_name):
         """
         Read in the video from the given path
@@ -98,12 +87,7 @@ class Barcode:
         :type video_path_name: str
         """
         # Run saliency detection and use new video
-        if self.frame_type == "Focus":
-            find_focus(video_path_name)
-            self.video = cv2.VideoCapture("./temp.mp4")
-        else:
-            self.video = cv2.VideoCapture(video_path_name)
-
+        self.video = Frame.frame_types[self.frame_type].load_video(video_path_name)
 
         # Get the fps of the video
         self.fps = self.video.get(cv2.CAP_PROP_FPS)
@@ -119,8 +103,6 @@ class Barcode:
 
         if self.save_frames_in_generation:
             self._determine_save_frame_param()
-        
-
 
     def find_film_letterbox(self, num_sample=30):
         """
@@ -178,39 +160,7 @@ class Barcode:
         if self.rescale_frames_in_generation:
             frame = self._resize_frame(frame)
 
-        if self.frame_type == "Whole_frame":
-            processed_frame = frame
-        elif self.frame_type == "High_contrast_region":
-            contrast_matrix, labels = get_contrast_matrix_and_labeled_image(frame)
-            highest_contrast_region = np.sum(contrast_matrix, axis=1).argmax()
-            processed_frame = frame[labels == (highest_contrast_region + 1)]
-        elif self.frame_type == "Low_contrast_region":
-            contrast_matrix, labels = get_contrast_matrix_and_labeled_image(frame)
-            lowest_contrast_region = np.sum(contrast_matrix, axis=1).argmin()
-            processed_frame = frame[labels == (lowest_contrast_region + 1)]
-        elif self.frame_type == "Foreground":
-            fore_frame, _ = foreback_segmentation(frame)
-            if fore_frame.size == 0:
-                # Empty foreground part use the whole frame instead
-                fore_frame = frame
-            processed_frame = fore_frame
-        elif self.frame_type == "Background":
-            _, back_frame = foreback_segmentation(frame)
-            if back_frame.size == 0:
-                # Empty background part use the whole frame instead
-                back_frame = frame
-            processed_frame = back_frame
-        elif self.frame_type == "Focus":
-            alpha = np.sum(frame, axis=-1) > 0
-
-            # Convert True/False to 0/255 and change type to "uint8" to match "na"
-            alpha = np.uint8(alpha * 255)
-
-            # Stack new alpha layer with existing image to go from BGR to BGRA, i.e. 3 channels to 4 channels
-            processed_frame = np.dstack((frame, alpha))
-            
-            
-        return processed_frame
+        return Frame.frame_types[self.frame_type].get_frame(frame)
 
     def _resize_frame(self, frame):
         """
@@ -234,42 +184,15 @@ class Barcode:
         :return: The color of the frame computed using the known color metric
         :rtype: numpy.ndarray
         """
-        if self.color_metric == "Average":
-            color = artist.compute_mean_color(frame)
-        elif self.color_metric == "Median":
-            color = artist.compute_median_color(frame)
-        elif self.color_metric == "Mode":
-            color, count = artist.compute_mode_color(frame)
-        elif self.color_metric == "Top-dominant":
-            colors, dominances = artist.compute_dominant_color(frame, n_clusters=3)
-            pos = np.argsort(dominances)[-1]
-            color = colors[pos]
-        elif self.color_metric == "Weighted-dominant":
-            colors, dominances = artist.compute_dominant_color(frame, n_clusters=3)
-            color = np.sum(colors * dominances.reshape(dominances.shape[0], 1), axis=0)
-        elif self.color_metric == "Brightest":
-            grey_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-            pos = np.argwhere(grey_frame == grey_frame.max())[0]
-            color = frame[pos[0], pos[1]].copy().astype("uint8")
-        elif self.color_metric == "Bright":
-            labels, bright_locations, dominance = artist.find_bright_spots(frame, n_clusters=3, return_all_pos=True)
-            top_bright = np.argsort(dominance)[-1]
-            top_bright_pos = (labels == top_bright)[:, 0]
-            pos = bright_locations[top_bright_pos]
-            frame = frame[pos[:, 0], pos[:, 1]].reshape(pos.shape[0], 1, 3)
-            color = artist.compute_mean_color(frame)
-
-        return color
+        return ColorMetric.color_metric_types[self.metric].get_color(frame)
 
     def get_barcode(self):
         """
-        Return the barcode. If not exist reshape the stored computed colors/brightness first to get the barcode
+        Return the barcode.
 
         :return: Return the barcode
         :rtype: class:`kalmus.barcodes.Barcode.Barcode`
         """
-        if self.barcode is None:
-            self.reshape_barcode()
         return self.barcode
 
     def set_letterbox_bound(self, up_vertical_bound, down_vertical_bound,
@@ -389,6 +312,9 @@ class Barcode:
             else:
                 self.saved_frames.append(resized_frame)
 
+    def set_copy_value(self, deepcopy):
+        pass
+
     def save_as_json(self, filename=None):
         """
         Save the barcode into the json file
@@ -396,8 +322,6 @@ class Barcode:
         :param filename: The name of the saved json file
         :type filename: str
         """
-        if self.barcode is None:
-            self.reshape_barcode()
         # This cv2 captured video is not pickled in the json
         # therefore it is not able to be pickled for deepcopy
         # Delete it from the object first
@@ -406,417 +330,13 @@ class Barcode:
         barcode_dict['barcode'] = barcode_dict['barcode'].tolist()
         if self.save_frames_in_generation:
             barcode_dict['saved_frames'] = barcode_dict['saved_frames'].tolist()
-        if isinstance(self, ColorBarcode):
-            barcode_dict['colors'] = barcode_dict['colors'].tolist()
-            barcode_type = "Color"
-        elif isinstance(self, BrightnessBarcode):
-            barcode_dict['brightness'] = barcode_dict['brightness'].tolist()
-            barcode_type = 'Brightness'
+        self.set_copy_value(barcode_dict)
         barcode_dict["video"] = None
 
         if filename is None:
             filename = "saved_{:s}_barcode_{:s}_{:s}.json" \
-                .format(barcode_type, self.frame_type, self.color_metric)
+                .format(self.barcode_type, self.frame_type, self.metric)
 
         with open(filename, "w") as file:
             json.dump(barcode_dict, file)
         file.close()
-
-
-class ColorBarcode(Barcode):
-    """
-    Color barcode
-
-    :param color_metric: The metric for computing the color of the frame
-    :type color_metric: str
-    :param frame_type: The type of frame sampling
-    :type frame_type: str
-    :param sampled_frame_rate: Frame sample rate: the frame sampled from every sampled_frame_rate.
-    :type sampled_frame_rate: int
-    :param skip_over: The number of frames to skip with at the beginning of the video
-    :type skip_over: int
-    :param total_frames: The total number of frames (computed) included in the barcode
-    :type total_frames: int
-    :param barcode_type: The type of the barcode
-    :type barcode_type: str
-    """
-
-    def __init__(self, color_metric, frame_type, sampled_frame_rate=1, skip_over=0, total_frames=10,
-                 barcode_type="Color"):
-        """
-        Initialize the barcode with the given parameters
-        """
-        super().__init__(color_metric, frame_type, sampled_frame_rate, skip_over, total_frames, barcode_type)
-        self.colors = None
-
-    def collect_colors(self, video_path_name):
-        """
-        Collect the colors of frames from the video
-
-        :param video_path_name: The path to the video file
-        :type video_path_name: str
-        """
-        self.read_video(video_path_name)
-
-        success, frame = self.video.read()
-
-        used_frames = 0
-        cur_frame_idx = 0 + self.skip_over
-
-        self.video.set(cv2.CAP_PROP_POS_FRAMES, cur_frame_idx)
-
-        colors_sequence = []
-
-        while success and used_frames < self.total_frames and cur_frame_idx < self.film_length_in_frames:
-            if (cur_frame_idx % self.sampled_frame_rate) == 0:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                if self.save_frames_in_generation:
-                    self.save_frames(used_frames, frame)
-                frame = self.process_frame(frame)
-                if len(frame.shape) <= 2:
-                    frame = frame.reshape(-1, 1, 3)
-
-                color = self.get_color_from_frame(frame)
-                colors_sequence.append(color)
-
-                used_frames += 1
-
-            cur_frame_idx += 1
-
-            success, frame = self.video.read()
-
-        self.colors = np.array(colors_sequence).astype("uint8")
-        if self.save_frames_in_generation:
-            self.saved_frames = np.array(self.saved_frames)
-
-    def multi_thread_collect_colors(self, video_path_name, num_thread=4):
-        """
-        Collect the color of the input video using Multi-thread method
-
-        :param video_path_name: The path to the input video
-        :type video_path_name: str
-        :param num_thread: Number of threads to collect the brightness
-        :type num_thread: int
-        """
-        # Correct the total frames temporarily for the multi-thread generation in order to
-        # be according with the definition of total frames in single thread generation
-        # where total frames == self.colors.size / 3 (channels)
-        self.total_frames *= self.sampled_frame_rate
-        self.read_video(video_path_name)
-
-        thread_videos = [None] * num_thread
-        thread_videos[0] = self.video
-        for i in range(1, num_thread):
-            thread_videos[i] = cv2.VideoCapture(video_path_name)
-
-        threads = [None] * num_thread
-        thread_results = [None] * num_thread
-        step = self.total_frames // num_thread
-
-        if self.save_frames_in_generation:
-            saved_frame_results = [[]] * num_thread
-        else:
-            saved_frame_results = None
-
-        for i, tid in zip(range(self.skip_over, self.skip_over + self.total_frames, step),
-                          range(num_thread)):
-            if tid == num_thread - 1:
-                start_point = i
-                break
-            threads[tid] = threading.Thread(target=self.thread_collect_color_start_to_end,
-                                            args=(thread_videos[tid], i, step, thread_results, tid,
-                                                  saved_frame_results))
-            threads[tid].start()
-
-        threads[num_thread - 1] = threading.Thread(target=self.thread_collect_color_start_to_end,
-                                                   args=(thread_videos[tid], start_point,
-                                                         self.total_frames + self.skip_over - start_point,
-                                                         thread_results, tid, saved_frame_results))
-        threads[num_thread - 1].start()
-
-        for i in range(num_thread):
-            threads[i].join()
-
-        # Now change the total frames back to the original input
-        self.total_frames = int(self.total_frames / self.sampled_frame_rate)
-
-        colors_sequence = [thread_results[0]]
-        for i in range(1, num_thread):
-            colors_sequence.append(thread_results[i])
-
-        self.colors = np.concatenate(colors_sequence).astype("uint8")
-
-        if self.save_frames_in_generation:
-            for frame_arry in saved_frame_results:
-                self.saved_frames += frame_arry
-            self.saved_frames = np.array(self.saved_frames)
-
-    def thread_collect_color_start_to_end(self, video, start_point, num_frames, results, tid, frame_saved=None):
-        """
-        Collect the colors from the video using the multi-threads
-
-        :param video: The video object
-        :type video: class:`cv2.VideoCapture`
-        :param start_point: Start point for collecting the colors
-        :type start_point: int
-        :param num_frames: The number of frames to collect
-        :type num_frames: int
-        :param results: The placeholder for saving the results
-        :type results: list
-        :param tid: The id of the thread
-        :type tid: int
-        :param frame_saved: The placeholder for the saved frames
-        :type frame_saved: list
-        """
-        assert self.video is not None, "No video is read in to the barcode for analysis."
-        cur_frame_idx = start_point
-        video.set(cv2.CAP_PROP_POS_FRAMES, cur_frame_idx)
-
-        colors_sequence = []
-        frame_sequence = []
-
-        success, frame = video.read()
-        used_frames = 0
-        while success and used_frames < num_frames and cur_frame_idx < (start_point + num_frames):
-            if (cur_frame_idx % self.sampled_frame_rate) == 0:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                if self.save_frames_in_generation:
-                    self.save_frames(used_frames, frame, frame_sequence)
-                frame = self.process_frame(frame)
-                if len(frame.shape) <= 2:
-                    frame = frame.reshape(-1, 1, 3)
-
-                color = self.get_color_from_frame(frame)
-                colors_sequence.append(color)
-
-                used_frames += 1
-
-            cur_frame_idx += 1
-
-            success, frame = video.read()
-
-        results[tid] = colors_sequence
-        if self.save_frames_in_generation:
-            frame_saved[tid] = frame_sequence
-
-    def reshape_barcode(self, frames_per_column=160):
-        """
-        Reshape the barcode (2 dimensional with 3 channels)
-
-        :param frames_per_column: Number of frames per column in the reshaped barcode
-        :type frames_per_column: int
-        """
-        if len(self.colors) % frames_per_column == 0:
-            self.barcode = self.colors.reshape(frames_per_column, -1, self.colors.shape[-1], order='F')
-        elif len(self.colors) < frames_per_column:
-            self.barcode = self.colors.reshape(-1, 1, self.colors.shape[-1], order='F')
-        else:
-            truncate_bound = int(len(self.colors) / frames_per_column) * frames_per_column
-            self.barcode = self.colors[:truncate_bound].reshape(frames_per_column, -1,
-                                                                self.colors.shape[-1], order='F')
-
-
-class BrightnessBarcode(Barcode):
-    """
-    Brightness Barcode Class.
-
-    :param color_metric: The metric for computing the color of the frame
-    :type color_metric: str
-    :param frame_type: The type of frame sampling
-    :type frame_type: str
-    :param sampled_frame_rate: Frame sample rate: the frame sampled from every sampled_frame_rate.
-    :type sampled_frame_rate: int
-    :param skip_over: The number of frames to skip with at the beginning of the video
-    :type skip_over: int
-    :param total_frames: The total number of frames (computed) included in the barcode
-    :type total_frames: int
-    :param barcode_type: The type of the barcode
-    :type barcode_type: str
-    """
-
-    def __init__(self, color_metric, frame_type, sampled_frame_rate=1, skip_over=0, total_frames=10,
-                 barcode_type="Brightness"):
-        """
-        Initialize the barcode with the given parameters
-        """
-        super().__init__(color_metric, frame_type, sampled_frame_rate, skip_over, total_frames, barcode_type)
-        self.brightness = None
-
-    def collect_brightness(self, video_path_name):
-        """
-        Collect the brightness from the input video
-
-        :param video_path_name: The path to the video
-        :type video_path_name: str
-        """
-        self.read_video(video_path_name)
-
-        success, frame = self.video.read()
-
-        used_frames = 0
-        cur_frame_idx = 0 + self.skip_over
-
-        self.video.set(cv2.CAP_PROP_POS_FRAMES, cur_frame_idx)
-
-        brightness_sequence = []
-
-        while success and used_frames < self.total_frames and cur_frame_idx < self.film_length_in_frames:
-            if (cur_frame_idx % self.sampled_frame_rate) == 0:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                if self.save_frames_in_generation:
-                    self.save_frames(used_frames, frame)
-                frame = self.process_frame(frame)
-                if len(frame.shape) <= 2:
-                    frame = frame.reshape(-1, 1, 3)
-
-                if self.color_metric in color_metrics[-2:]:
-                    color = self.get_color_from_frame(frame)
-                    brightness = np.sum(color * np.array([0.299, 0.587, 0.114], dtype="float64"))
-                    brightness = brightness.astype("uint8")
-                    brightness_sequence.append(brightness)
-                else:
-                    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-                    brightness = self.get_color_from_frame(frame)
-                    brightness_sequence.append(brightness)
-
-                used_frames += 1
-
-            cur_frame_idx += 1
-
-            success, frame = self.video.read()
-
-        self.brightness = np.array(brightness_sequence).astype("uint8")
-        if self.save_frames_in_generation:
-            self.saved_frames = np.array(self.saved_frames)
-
-    def multi_thread_collect_brightness(self, video_path_name, num_thread=4):
-        """
-        Collect the brightness of the input video using Multi-thread method
-
-        :param video_path_name: The path to the input video
-        :type video_path_name: str
-        :param num_thread: Number of threads to collect the brightness
-        :type num_thread: int
-        """
-        # Correct the total frames temporarily for the multi-thread generation in order to
-        # be according with the definition of total frames in single thread generation
-        # where total frames == self.colors.size / 3 (channels)
-        self.total_frames *= self.sampled_frame_rate
-        self.read_video(video_path_name)
-
-        thread_videos = [None] * num_thread
-        thread_videos[0] = self.video
-        for i in range(1, num_thread):
-            thread_videos[i] = cv2.VideoCapture(video_path_name)
-
-        threads = [None] * num_thread
-        thread_results = [None] * num_thread
-        step = self.total_frames // num_thread
-
-        if self.save_frames_in_generation:
-            saved_frame_results = [[]] * num_thread
-        else:
-            saved_frame_results = None
-
-        for i, tid in zip(range(self.skip_over, self.skip_over + self.total_frames, step),
-                          range(num_thread)):
-            if tid == num_thread - 1:
-                start_point = i
-                break
-            threads[tid] = threading.Thread(target=self.thread_collect_brightness_start_to_end,
-                                            args=(thread_videos[tid], i, step, thread_results,
-                                                  tid, saved_frame_results))
-            threads[tid].start()
-
-        threads[num_thread - 1] = threading.Thread(target=self.thread_collect_brightness_start_to_end,
-                                                   args=(thread_videos[tid], start_point,
-                                                         self.total_frames + self.skip_over - start_point,
-                                                         thread_results, tid, saved_frame_results))
-        threads[num_thread - 1].start()
-
-        for i in range(num_thread):
-            threads[i].join()
-
-        # Now change the total frames back to the original input
-        self.total_frames = int(self.total_frames / self.sampled_frame_rate)
-
-        brightness_sequence = [thread_results[0]]
-        for i in range(1, num_thread):
-            brightness_sequence.append(thread_results[i])
-
-        self.brightness = np.concatenate(brightness_sequence).astype("uint8")
-
-        if self.save_frames_in_generation:
-            for frame_arry in saved_frame_results:
-                self.saved_frames += frame_arry
-            self.saved_frames = np.array(self.saved_frames)
-
-    def thread_collect_brightness_start_to_end(self, video, start_point, num_frames, results, tid, frame_saved=None):
-        """
-        Collect the brightness from the video using the multi-threads
-
-        :param video: The video object
-        :type video: class:`cv2.VideoCapture`
-        :param start_point: Start point for collecting the colors
-        :type start_point: int
-        :param num_frames: The number of frames to collect
-        :type num_frames: int
-        :param results: The placeholder for saving the results
-        :type results: list
-        :param tid: The id of the thread
-        :type tid: int
-        :param frame_saved: The placeholder for the saved frames
-        :type frame_saved: list
-        """
-        assert self.video is not None, "No video is read in to the barcode for analysis."
-        cur_frame_idx = start_point
-        video.set(cv2.CAP_PROP_POS_FRAMES, cur_frame_idx)
-
-        brightness_sequence = []
-        frame_sequence = []
-
-        success, frame = video.read()
-        used_frames = 0
-        while success and used_frames < num_frames and cur_frame_idx < (start_point + num_frames):
-            if (cur_frame_idx % self.sampled_frame_rate) == 0:
-                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                if self.save_frames_in_generation:
-                    self.save_frames(used_frames, frame, frame_sequence)
-                frame = self.process_frame(frame)
-                if len(frame.shape) <= 2:
-                    frame = frame.reshape(-1, 1, 3)
-
-                if self.color_metric in color_metrics[-2:]:
-                    color = self.get_color_from_frame(frame)
-                    brightness = np.sum(color * np.array([0.299, 0.587, 0.114], dtype="float64"))
-                    brightness = brightness.astype("uint8")
-                    brightness_sequence.append(brightness)
-                else:
-                    frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
-                    brightness = self.get_color_from_frame(frame)
-                    brightness_sequence.append(brightness)
-
-                used_frames += 1
-
-            cur_frame_idx += 1
-
-            success, frame = video.read()
-
-        results[tid] = brightness_sequence
-        if self.save_frames_in_generation:
-            frame_saved[tid] = frame_sequence
-
-    def reshape_barcode(self, frames_per_column=160):
-        """
-        Reshape the brightness barcode (2 dimensional with 1 channel)
-
-        :param frames_per_column: Number of frames per column in the reshaped barcode
-        :type frames_per_column: int
-        """
-        if len(self.brightness) % frames_per_column == 0:
-            self.barcode = self.brightness.reshape(frames_per_column, -1, order='F')
-        elif len(self.brightness) < frames_per_column:
-            self.barcode = self.brightness.reshape(-1, 1, order='F')
-        else:
-            truncate_bound = int(len(self.brightness) / frames_per_column) * frames_per_column
-            self.barcode = self.brightness[:truncate_bound].reshape(frames_per_column, -1, order='F')

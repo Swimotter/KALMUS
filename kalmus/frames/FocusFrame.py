@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-from kalmus.modules.frames.Frame import Frame
+from kalmus.frames.Frame import Frame
 from kalmus.utils.focus import find_focus
 
 

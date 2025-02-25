@@ -3,7 +3,7 @@ import threading
 import cv2
 import numpy as np
 
-from kalmus.modules.barcodes.InstancableBarcode import InstancableBarcode
+from kalmus.barcodes.InstancableBarcode import InstancableBarcode
 
 
 class ColorBarcode(InstancableBarcode):

@@ -12,7 +12,7 @@ class ColorMetric:
 
     @classmethod
     def register(cls):
-        print("Registered: %s".format(cls.color_metric_type))
+        print(f"Registered Color Metric: {cls.color_metric_type}")
 
         cls.color_metric_types[cls.color_metric_type] = cls
 

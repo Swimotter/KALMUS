@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
 
-from kalmus.modules.metrics.color_metrics.ColorMetric import ColorMetric
+from kalmus.metrics.brightness_metrics.BrightnessMetric import BrightnessMetric
 
 
-class BrightestColorMetric(ColorMetric):
-    color_metric_type = "brightest"
+class BrightestBrightnessMetric(BrightnessMetric):
+    brightness_metric_type = "brightest"
 
     @classmethod
     def get_color(cls, frame):

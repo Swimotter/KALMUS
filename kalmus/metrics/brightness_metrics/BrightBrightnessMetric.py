@@ -1,15 +1,15 @@
 import numpy as np
 
-from kalmus.modules.metrics.color_metrics.ColorMetric import ColorMetric
+from kalmus.metrics.brightness_metrics.BrightnessMetric import BrightnessMetric
 from kalmus.utils.artist import find_bright_spots, compute_mean_color
 
 
-class BrightestColorMetric(ColorMetric):
+class BrightBrightnessMetric(BrightnessMetric):
     """
     BROKEN DO NOT USE
     """
 
-    color_metric_type = "bright"
+    brightness_metric_type = "bright"
 
     @classmethod
     def get_color(cls, frame):

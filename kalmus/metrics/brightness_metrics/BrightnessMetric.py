@@ -12,7 +12,7 @@ class BrightnessMetric:
 
     @classmethod
     def register(cls):
-        print("Registered: %s".format(cls.brightness_metric_type))
+        print(f"Registered Brightness Metric: {cls.brightness_metric_type}")
 
         cls.brightness_metric_types[cls.brightness_metric_type] = cls
 

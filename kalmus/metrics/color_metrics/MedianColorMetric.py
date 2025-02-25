@@ -1,6 +1,6 @@
 from kalmus.utils.artist import compute_median_color
 
-from kalmus.modules.metrics.color_metrics.ColorMetric import ColorMetric
+from kalmus.metrics.color_metrics.ColorMetric import ColorMetric
 
 
 class MedianColorMetric(ColorMetric):

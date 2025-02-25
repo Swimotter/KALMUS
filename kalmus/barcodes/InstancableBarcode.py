@@ -1,4 +1,4 @@
-from kalmus.modules.barcodes.Barcode import Barcode
+from kalmus.barcodes.Barcode import Barcode
 
 
 class InstancableBarcode(Barcode):

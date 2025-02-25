@@ -1,6 +1,6 @@
 import numpy as np
 
-from kalmus.modules.frames.Frame import Frame
+from kalmus.frames.Frame import Frame
 from kalmus.utils.artist import get_contrast_matrix_and_labeled_image
 
 

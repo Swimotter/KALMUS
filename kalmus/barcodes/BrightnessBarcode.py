@@ -3,8 +3,8 @@ import threading
 import cv2
 import numpy as np
 
-from kalmus.modules.barcodes.InstancableBarcode import InstancableBarcode
-from kalmus.modules.metrics.brightness_metrics.BrightnessMetric import BrightnessMetric
+from kalmus.barcodes.InstancableBarcode import InstancableBarcode
+from kalmus.metrics.brightness_metrics.BrightnessMetric import BrightnessMetric
 
 
 class BrightnessBarcode(InstancableBarcode):
@@ -76,7 +76,7 @@ class BrightnessBarcode(InstancableBarcode):
 
                 # What is the point of this??
                 # Why would it not be using a brightness type????
-                if self.brightness_metric in BrightnessMetric.brightness_metric_types:
+                if self.brightness_metric in BrightnessMetric.brightness_metric_types.keys():
                     color = self.get_color_from_frame(frame)
                     brightness = np.sum(color * np.array([0.299, 0.587, 0.114], dtype="float64"))
                     brightness = brightness.astype("uint8")
@@ -194,7 +194,7 @@ class BrightnessBarcode(InstancableBarcode):
                 if len(frame.shape) <= 2:
                     frame = frame.reshape(-1, 1, 3)
 
-                if self.color_metric in BrightnessMetric.brightness_metric_types:
+                if self.brightness_metric in BrightnessMetric.brightness_metric_types.keys():
                     color = self.get_color_from_frame(frame)
                     brightness = np.sum(color * np.array([0.299, 0.587, 0.114], dtype="float64"))
                     brightness = brightness.astype("uint8")

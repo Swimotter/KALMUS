@@ -1,6 +1,6 @@
 from kalmus.utils import artist
 
-from kalmus.modules.frames.Frame import Frame
+from kalmus.frames.Frame import Frame
 
 
 def foreback_segmentation(frame):
