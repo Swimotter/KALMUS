@@ -4,7 +4,7 @@ import os
 import pytest
 
 # kalmus module being tested
-import command_line_generator as cli
+from kalmus import command_line_generator as cli
 
 
 @pytest.mark.filterwarnings("ignore::DeprecationWarning")
