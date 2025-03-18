@@ -8,7 +8,7 @@ from tkinter.messagebox import showwarning, showinfo
 from kalmus.tkinter_windows.gui_utils import resource_path
 
 
-class SaveBarcodeWindow():
+class SaveBarcodeWindow:
     """
     SaveBarcodeWindow Class
     GUI window for user to select the barcode to save into a json file that can be later loaded back to kalmus
@@ -98,7 +98,7 @@ class SaveBarcodeWindow():
 
         if not filename:
             filename = "saved_{:s}_barcode_{:s}_{:s}.json" \
-                .format(barcode.barcode_type, barcode.frame_type, barcode.color_metric)
+                .format(barcode.barcode_type, barcode.frame_type, barcode.metric)
 
         # Quit the window
         self.window.destroy()

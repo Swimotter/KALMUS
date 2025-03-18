@@ -22,7 +22,7 @@ class InstancableBarcode(Barcode):
     def save_as_json(self, filename=None):
         if self.barcode is None:
             self.reshape_barcode()
-        super(filename)
+        super().save_as_json(filename)
 
     def generate(self, video_path, num_threads):
         pass
