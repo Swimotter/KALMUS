@@ -27,9 +27,6 @@ def build_barcode_from_json(path_to_json, barcode_type="color"):
         object_dict = json.load(infile)
     infile.close()
 
-    # Make sure the barcode_type is correctly capitalized
-    barcode_type = barcode_type.capitalize()
-
     barcode = Barcode.barcode_types[barcode_type](object_dict["metric"], frame_type=object_dict["frame_type"],
                                sampled_frame_rate=object_dict["sampled_frame_rate"],
                                skip_over=object_dict["skip_over"], total_frames=int(object_dict["total_frames"]))

@@ -112,7 +112,7 @@ class LoadJsonWindow():
 
         try:
             # Generate the barcode from json file use the barcode generator
-            barcode_type = self.type_variable.get()
+            barcode_type = self.type_variable.get().lower()
             self.barcode_generator.generate_barcode_from_json(filename, barcode_type)
         except:
             showerror("Error Occurred in Loading JSON Barcode", "An error occurred in loading the JSON barcode.\n\n"

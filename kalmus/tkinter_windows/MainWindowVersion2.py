@@ -325,13 +325,14 @@ class MainWindow():
 
                 barcode_shape = barcode.get_barcode().shape
                 if 0 <= iy < barcode_shape[0] and 0 <= ix < barcode_shape[1]:
-                    if barcode.barcode_type == "Color":
+                    color_label_text = ""
+                    if barcode.barcode_type == "color":
                         r, g, b = barcode.get_barcode().astype("uint8")[iy, ix]
                         self.color_swatch.config(bg=f'#{r:02x}{g:02x}{b:02x}')
                         color_label_text = "Red = {:>3d}  " \
                                            "Green = {:>3d}  " \
                                            "Blue = {:>3d}\n".format(r, g, b)
-                    elif barcode.barcode_type == "Brightness":
+                    elif barcode.barcode_type == "brightness":
                         r = g = b = barcode.get_barcode().astype("uint8")[iy, ix]
                         self.color_swatch.config(bg=f'#{r:02x}{g:02x}{b:02x}')
                         color_label_text = "Brightness = {:>3d}\n".format(r)

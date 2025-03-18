@@ -44,7 +44,7 @@ def compare_two_barcodes(barcode_1, barcode_2):
                                          target_barcode_2.astype("float64"))
 
     # Get the color/brightness of two barcodes
-    if barcode_1.barcode_type == "Color":
+    if barcode_1.barcode_type == "color":
         colors_barcode_1 = barcode_1.colors
         colors_barcode_2 = barcode_2.colors
     else:
@@ -60,7 +60,7 @@ def compare_two_barcodes(barcode_1, barcode_2):
                                                                              len(colors_barcode_1))]
     # Convert the barcode to character string for alignment matching comparison
     # Convert the barcode to correct character based on its barcode type
-    if barcode_1.barcode_type == "Color":
+    if barcode_1.barcode_type == "color":
         string_1 = measure_utils.generate_hue_strings_from_color_barcode(colors_barcode_1)
         string_2 = measure_utils.generate_hue_strings_from_color_barcode(colors_barcode_2)
     else:
@@ -226,7 +226,7 @@ def update_axes_title(axes, barcode_1, barcode_2):
 
     # Update the Frame sampling type and color/brightness metric into the title
     title_1 += "    Frame Type:{:s}    {:s} Metric:{:s}".format(barcode_1.frame_type, barcode_1.barcode_type,
-                                                                barcode_1.color_metric)
+                                                                barcode_1.metric)
 
     # Update the meta data into the title of the plotted figure
     if barcode_2.meta_data is not None:
@@ -236,14 +236,14 @@ def update_axes_title(axes, barcode_1, barcode_2):
 
     # Update the Frame sampling type and color/brightness metric into the title
     title_2 += "    Frame Type:{:s}    {:s} Metric:{:s}".format(barcode_2.frame_type, barcode_2.barcode_type,
-                                                                barcode_2.color_metric)
+                                                                barcode_2.metric)
 
     # Set up the title
     axes[0][0].set_title(title_1, fontsize=8)
     axes[1][0].set_title(title_2, fontsize=8)
 
     # Change the histogram's label and xticks accordingly
-    if barcode_1.barcode_type == "Color":
+    if barcode_1.barcode_type == "color":
         axes[0][1].set_xticks(np.arange(0, 361, 30))
         axes[0][1].set_xlabel("Color Hue (0 - 360)")
         axes[0][1].set_ylabel("Number of frames")
@@ -252,7 +252,7 @@ def update_axes_title(axes, barcode_1, barcode_2):
         axes[0][1].set_xlabel("Brightness (0 - 255)")
         axes[0][1].set_ylabel("Number of frames")
 
-    if barcode_2.barcode_type == "Color":
+    if barcode_2.barcode_type == "color":
         axes[1][1].set_xticks(np.arange(0, 361, 30))
         axes[1][1].set_xlabel("Color Hue (0 - 360)")
         axes[1][1].set_ylabel("Number of frames")
@@ -273,7 +273,7 @@ def update_hist(barcode, ax, bin_step=5):
     bin_step = bin_step
 
     # Plot the histogram based on the barcode's type
-    if barcode.barcode_type == "Color":
+    if barcode.barcode_type == "color":
         # If the barcode type is color
         # Then plot the barcode's hue value
         normalized_barcode = barcode.get_barcode().astype("float") / 255

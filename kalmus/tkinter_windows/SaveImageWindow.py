@@ -139,7 +139,7 @@ class SaveImageWindow():
                              interpolation=cv2.INTER_NEAREST)
 
         # Save the barcode with desirable color map based on its barcode type
-        if barcode_type == "Color":
+        if barcode_type == "color":
             plt.imsave(filename, barcode)
         else:
             plt.imsave(filename, barcode, cmap="gray")

@@ -26,7 +26,7 @@ def main(args=sys.argv[1:]):
     json_path = os.path.abspath(os.path.dirname(__file__))
     json_path = os.path.join(json_path, "data/mission_impossible_Bright_Whole_frame_Color.json")
     barcode_gn.generate_barcode_from_json(json_file_path=json_path,
-                                          barcode_type="Color")
+                                          barcode_type="color")
 
     # Get the default barcode
     barcode_tmp = barcode_gn.get_barcode()

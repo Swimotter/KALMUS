@@ -58,7 +58,7 @@ class PlotBarcodeWindow():
         self.canvas.draw()
 
         # Dynamic layout based on the type of the inspected barcode
-        if barcode.barcode_type == "Color":
+        if barcode.barcode_type == "color":
             column_span = 5
         else:
             column_span = 2
@@ -83,7 +83,7 @@ class PlotBarcodeWindow():
         self.button_hist.grid(row=1, column=1, padx=6)
 
         # If the barcode is a color barcode, allow user to inspect the RGB color distribution in a RGB cube
-        if barcode.barcode_type == "Color":
+        if barcode.barcode_type == "color":
             self.button_cube = tkinter.Button(master=self.plot_window, text="Colors in RGB Cube",
                                               command=self.show_RGB_color_in_cube)
             self.button_cube.grid(row=1, column=2)
@@ -147,7 +147,7 @@ class ColorHistogramWindow():
         update_hist(barcode, ax=ax, bin_step=5)
 
         # Plot the histogram based on the barcode's type
-        if barcode.barcode_type == "Color":
+        if barcode.barcode_type == "color":
             ax.set_xticks(np.arange(0, 361, 30))
             ax.set_xlabel("Color Hue (0 - 360)")
             ax.set_ylabel("Number of frames")

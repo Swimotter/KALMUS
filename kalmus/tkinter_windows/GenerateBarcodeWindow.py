@@ -54,7 +54,7 @@ class GenerateBarcodeWindow():
 
         # Variable that stores the user's choice of generated barcode type
         self.barcode_type_var = tkinter.StringVar(self.window)
-        self.barcode_type_var.set("Color")
+        self.barcode_type_var.set("Color") # This is set to lowercase when used later
 
         # Dropdown menu for the barcode type selection
         dropdown_bar_type = tkinter.OptionMenu(self.window, self.barcode_type_var, "Color", "Brightness")
@@ -407,9 +407,9 @@ class GenerateBarcodeWindow():
         Acquire the barcode generation parameters
         """
         # Get barcode type, frame sampling type, and color/brightness metric
-        barcode_type = self.barcode_type_var.get()
-        frame_type = self.frame_type_var.get()
-        color_metric = self.color_metric_var.get()
+        barcode_type = self.barcode_type_var.get().lower()
+        frame_type = self.frame_type_var.get().lower()
+        color_metric = self.color_metric_var.get().lower()
 
         # Get the acquisition unit
         unit_type = self.acquisition_option.get()

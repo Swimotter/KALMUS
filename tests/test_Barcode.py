@@ -13,21 +13,19 @@ import pytest
 warnings.filterwarnings("ignore", message="numpy.ufunc size changed")
 
 # kalmus module being tested
-import kalmus.barcodes.Barcode as BarcodeClasses
+from kalmus.barcodes import ColorBarcode, BrightnessBarcode
 
 
 def get_template_barcode():
-    return BarcodeClasses.Barcode(color_metric="Average", frame_type="Whole_frame")
+    return BarcodeClasses.Barcode(color_metric="average", frame_type="whole_frame")
 
 
 def get_template_color_barcode():
-    return BarcodeClasses.ColorBarcode(color_metric="Average", frame_type="Whole_frame",
-                                       barcode_type="Color")
+    return ColorBarcode.ColorBarcode(color_metric="average", frame_type="whole_frame")
 
 
 def get_template_brightness_barcode():
-    return BarcodeClasses.BrightnessBarcode(color_metric="Average", frame_type="Whole_frame",
-                                            barcode_type="Brightness")
+    return BrightnessBarcode.BrightnessBarcode(brightness_metric="average", frame_type="whole_frame")
 
 
 def test_foreback_segmentation(get_test_color_image):
@@ -38,8 +36,8 @@ def test_foreback_segmentation(get_test_color_image):
 
 
 def test_Barcode():
-    barcode = BarcodeClasses.Barcode(color_metric="Average", frame_type="Whole_frame", sampled_frame_rate=2,
-                                     skip_over=10, total_frames=100, barcode_type="Color")
+    barcode = BarcodeClasses.Barcode(color_metric="average", frame_type="whole_frame", sampled_frame_rate=2,
+                                     skip_over=10, total_frames=100, barcode_type="color")
     assert barcode.color_metric == "Average"
     assert barcode.frame_type == "Whole_frame"
     assert barcode.barcode_type == "Color"

@@ -37,7 +37,7 @@ class CheckTimePointWindow():
         self.window.attributes('-topmost', True)
 
         # If the clicked barcode is color barcode
-        if self.barcode.barcode_type == "Color":
+        if self.barcode.barcode_type == "color":
             # Get the r, g, b value at that point
             r, g, b = barcode.get_barcode().astype("uint8")[self.y_pos, self.x_pos]
             # Set up the label
