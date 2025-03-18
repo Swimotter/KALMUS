@@ -6,7 +6,7 @@ from kalmus.utils.focus import find_focus
 
 
 class FocusFrame(Frame):
-    frame = "focus"
+    frame_type = "focus"
 
     @classmethod
     def load_video(cls, video_path):
