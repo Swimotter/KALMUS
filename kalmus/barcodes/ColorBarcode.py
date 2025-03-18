@@ -63,6 +63,7 @@ class ColorBarcode(InstancableBarcode):
         colors_sequence = []
 
         while success and used_frames < self.total_frames and cur_frame_idx < self.film_length_in_frames:
+            print(cur_frame_idx)
             if (cur_frame_idx % self.sampled_frame_rate) == 0:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 if self.save_frames_in_generation:
@@ -173,6 +174,7 @@ class ColorBarcode(InstancableBarcode):
         success, frame = video.read()
         used_frames = 0
         while success and used_frames < num_frames and cur_frame_idx < (start_point + num_frames):
+            print(cur_frame_idx)
             if (cur_frame_idx % self.sampled_frame_rate) == 0:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 if self.save_frames_in_generation:
