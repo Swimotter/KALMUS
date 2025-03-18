@@ -17,7 +17,7 @@ class InstancableBarcode(Barcode):
         """
         if self.barcode is None:
             self.reshape_barcode()
-        return super()
+        return super().get_barcode()
 
     def save_as_json(self, filename=None):
         if self.barcode is None:

@@ -14,8 +14,6 @@ class Barcode:
     """
     Barcode Class. Base class for ColorBarcode and BrightnessBarcode
 
-    :param color_metric: The metric for computing the color of the frame
-    :type color_metric: str
     :param frame_type: The type of frame sampling
     :type frame_type: str
     :param sampled_frame_rate: Frame sample rate: the frame sampled from every sampled_frame_rate.
@@ -76,7 +74,7 @@ class Barcode:
         self.rescale_frames_in_generation = False
         self.rescale_frame_factor = -1
 
-        if self.barcode_type != "none":
+        if self.barcode_type != "none" and self.barcode_type not in self.barcode_types:
             self.register()
 
     def read_video(self, video_path_name):

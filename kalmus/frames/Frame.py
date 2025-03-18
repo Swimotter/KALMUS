@@ -41,5 +41,5 @@ class Frame:
         return frame
 
     def __init__(self):
-        if self.frame_type != "none":
+        if self.frame_type != "none" and self.frame_type not in self.frame_types:
             self.register()

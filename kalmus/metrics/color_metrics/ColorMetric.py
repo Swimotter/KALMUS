@@ -29,5 +29,5 @@ class ColorMetric:
         return compute_mean_color(frame)
 
     def __init__(self):
-        if self.color_metric_type != "none":
+        if self.color_metric_type != "none" and self.color_metric_type not in ColorMetric.color_metric_types:
             self.register()

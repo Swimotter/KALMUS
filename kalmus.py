@@ -3,7 +3,9 @@
 from kalmus.barcodes.BarcodeGenerator import BarcodeGenerator
 from kalmus.tkinter_windows.MainWindowVersion2 import MainWindow
 from kalmus.tkinter_windows.gui_utils import resource_path
+from register import register
 
+register()
 
 # Instantiate the barcode generator object
 barcode_gn = BarcodeGenerator()
