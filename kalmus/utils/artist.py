@@ -136,7 +136,7 @@ def compute_mean_color(image):
     has_opacity, image, opacity = separate_opacity(image)
     
     image = flatten_image(image)
-    if has_opacity and np.sum(opacity) != 0:
+    if has_opacity:
         avg_color = np.average(image, axis=0, weights=opacity)
     else:
         avg_color = np.average(image, axis=0)
@@ -152,8 +152,14 @@ def compute_median_color(image):
     :return: The median color of the image (median values of channels), shape==channels
     :rtype: numpy.ndarray
     """
+    has_opacity, image, opacity = separate_opacity(image)
+
     image = flatten_image(image)
-    median_color = np.median(image, axis=0)
+    if has_opacity:
+        image = np.where(opacity == 0, np.nan, image)
+        median_color = np.nanmedian(image, axis=0)
+    else:
+        median_color = np.median(image, axis=0)
     return median_color
 
 
