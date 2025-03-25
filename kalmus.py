@@ -10,8 +10,7 @@ register()
 barcode_gn = BarcodeGenerator()
 # Build the default barcode from the default json file
 json_path = resource_path("mission_impossible_Bright_Whole_frame_Color.json")
-barcode_gn.generate_barcode_from_json(json_file_path=json_path,
-                                      barcode_type="color")
+barcode_gn.generate_barcode_from_json(json_file_path=json_path)
 
 # Get the default barcode
 barcode_tmp = barcode_gn.get_barcode()

@@ -216,13 +216,15 @@ class BrightnessBarcode(InstancableBarcode):
         if self.save_frames_in_generation:
             frame_saved[tid] = frame_sequence
 
-    def reshape_barcode(self, frames_per_column=160):
+    def reshape_barcode(self):
         """
-        Reshape the brightness barcode (2 dimensional with 1 channel)
+        Reshape the brightness barcode (2 dimensional with 1 channel) so that each column is 10 seconds
 
         :param frames_per_column: Number of frames per column in the reshaped barcode
         :type frames_per_column: int
         """
+        sec_per_col = 10
+        frames_per_column = round(sec_per_col * self.fps / self.sampled_frame_rate)
         if len(self.brightness) % frames_per_column == 0:
             self.barcode = self.brightness.reshape(frames_per_column, -1, order='F')
         elif len(self.brightness) < frames_per_column:

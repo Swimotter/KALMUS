@@ -196,13 +196,15 @@ class ColorBarcode(InstancableBarcode):
         if self.save_frames_in_generation:
             frame_saved[tid] = frame_sequence
 
-    def reshape_barcode(self, frames_per_column=160):
+    def reshape_barcode(self):
         """
-        Reshape the barcode (2 dimensional with 3 channels)
+        Reshape the barcode (2 dimensional with 3 channels) so that each column is 10 seconds
 
         :param frames_per_column: Number of frames per column in the reshaped barcode
         :type frames_per_column: int
         """
+        sec_per_col = 10
+        frames_per_column = round(sec_per_col * self.fps / self.sampled_frame_rate)
         if len(self.colors) % frames_per_column == 0:
             self.barcode = self.colors.reshape(frames_per_column, -1, self.colors.shape[-1], order='F')
         elif len(self.colors) < frames_per_column:
