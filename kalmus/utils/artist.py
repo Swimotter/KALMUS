@@ -113,17 +113,6 @@ def compute_mode_color(image, bin_size=10):
     mode_color, counts = stats.mode(image, axis=0)
     return (mode_color[0] * bin_size), counts
 
-def separate_opacity(image):
-    # Assume has opacity only if 4 channels
-    has_opacity = image.shape[2] == 4
-    opacity = None
-    if has_opacity:
-        opacity = image[:,:,3:]
-        image = image[:,:,:3]
-        opacity = opacity.reshape(-1)
-    return opacity is not None and np.sum(opacity) != 0, image, opacity
-    
-
 def compute_mean_color(image):
     """
     Compute the average/mean color of the input multi-channel image or greyscale image.
@@ -133,13 +122,8 @@ def compute_mean_color(image):
     :return: The average color of the image (averaged across the channels). shape==channels.
     :rtype: numpy.ndarray
     """
-    has_opacity, image, opacity = separate_opacity(image)
-    
     image = flatten_image(image)
-    if has_opacity:
-        avg_color = np.average(image, axis=0, weights=opacity)
-    else:
-        avg_color = np.average(image, axis=0)
+    avg_color = np.average(image, axis=0)
     return avg_color
 
 
@@ -152,14 +136,8 @@ def compute_median_color(image):
     :return: The median color of the image (median values of channels), shape==channels
     :rtype: numpy.ndarray
     """
-    has_opacity, image, opacity = separate_opacity(image)
-
     image = flatten_image(image)
-    if has_opacity:
-        image = np.where(opacity == 0, np.nan, image)
-        median_color = np.nanmedian(image, axis=0)
-    else:
-        median_color = np.median(image, axis=0)
+    median_color = np.nanmedian(image, axis=0)
     return median_color
 
 

@@ -15,10 +15,5 @@ class FocusFrame(Frame):
 
     @classmethod
     def get_frame(cls, frame):
-        alpha = np.sum(frame, axis=-1) > 0
-
-        # Convert True/False to 0/255 and change type to "uint8" to match "na"
-        alpha = np.uint8(alpha * 255)
-
-        # Stack new alpha layer with existing image to go from BGR to BGRA, i.e. 3 channels to 4 channels
-        return np.dstack((frame, alpha))
+        mask = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY) > 10
+        return frame[mask].reshape(-1, 1, 3)
